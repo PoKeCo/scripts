@@ -6,6 +6,7 @@ function show_help(){
     echo 
     echo Mandatory arguments to long options are mandatory for short options too.
     printf " %-20s %s\n" "-m <message> " "Show message of argument"
+    printf " %-20s %s\n" "--help" "Display this help and exit"
 }
 
 function set_escape_sequence(){
