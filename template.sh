@@ -15,7 +15,7 @@ function set_escape_sequence(){
     BLUE=`printf "\e[34m"`
     CYAN=`printf "\e[36m"`
     MAGENTA=`printf "\e[35m"`
-    GRAY=`printf "\e[38;2;128;128;128m"` # You can specify R,G,B
+    GLAY=`printf "\e[38;2;128;128;128m"` # You can specify R,G,B
     NORM=`printf "\e[0m"` # Return to default color
     CLS=`printf "\e[2J"` # CLear Screen
     CLL=`printf "\e[2K"` # CLear Line
