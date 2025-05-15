@@ -56,6 +56,35 @@ function LOCATE(){
     printf "\e[%d;%dH" $1 $2
 }
 
+function prepare_ssh(){
+    # $1 : ADDR
+    ADDR=$1
+    ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "${ADDR}" 
+}
+
+function ssh_exec(){
+    # $1 : ADDR
+    # $2 : USER
+    # $3 : PASS
+    # $4 : COMMAND
+    ADDR=$1
+    USER=$2
+    PASS=$3
+    COMMAND=$4
+    echo "${GREEN}${USER}@${ADDR}: ${CYAN}${COMMAND}${NORM}"
+    sshpass -p ${PASS} ssh -o "StrictHostKeyChecking=no" -t ${USER}@${ADDR} -- "${COMMAND}"
+}
+
+function ssh_rsync(){
+    # $1 : PASS
+    # $2 : SRC
+    # $3 : DST
+    PASS=$1
+    SRC=$2
+    DST=$3
+    sshpass -p ${PASS} rsync -e "ssh -o StrictHostKeyChecking=no" -avzP ${SRC} ${DST}
+}
+
 ## Prepare 
 set_escape_sequence
 
