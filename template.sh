@@ -42,17 +42,17 @@ function set_escape_sequence(){
 }
 
 function RGB(){
-    # Usage: $(RGB 128 128 0)
+    # Usage: $(RGB <R> <G> <B>)
     printf "\e[38;2;%d;%d;%dm" $1 $2 $3
 }
 
 function BK_RGB(){
-    # Usage: $(BK_RGB 128 128 0)
+    # Usage: $(BK_RGB <R> <G> <B>)
     printf "\e[48;2;%d;%d;%dm" $1 $2 $3
 }
 
 function LOCATE(){
-    # Usage: $(LOCATE 10 20)
+    # Usage: $(LOCATE <X> <Y>)
     printf "\e[%d;%dH" $1 $2
 }
 
@@ -63,26 +63,43 @@ function prepare_ssh(){
 }
 
 function ssh_exec(){
-    # $1 : ADDR
-    # $2 : USER
-    # $3 : PASS
-    # $4 : COMMAND
+    # Usage : <ADDR> <USR> <PASS> <COMMAND>
     ADDR=$1
-    USER=$2
+    USR=$2
     PASS=$3
     COMMAND=$4
-    echo "${GREEN}${USER}@${ADDR}: ${CYAN}${COMMAND}${NORM}"
-    sshpass -p ${PASS} ssh -o "StrictHostKeyChecking=no" -t ${USER}@${ADDR} -- "${COMMAND}"
+    echo "${GREEN}${USR}@${ADDR}: ${CYAN}${COMMAND}${NORM}"
+    sshpass -p ${PASS} ssh -o "StrictHostKeyChecking=no" -t ${USR}@${ADDR} -- "${COMMAND}"
 }
 
 function ssh_rsync(){
-    # $1 : PASS
-    # $2 : SRC
-    # $3 : DST
+    # Usage : <PASS> <SRC> <DST>
     PASS=$1
     SRC=$2
     DST=$3
     sshpass -p ${PASS} rsync -e "ssh -o StrictHostKeyChecking=no" -avzP ${SRC} ${DST}
+}
+
+function rexec(){
+    # Usage : rexec_at <COMMAND> [ADDR[@USR[@PASS]]]
+    COMMAND=$1
+    ADDR_USR_PASS=$2
+    IFS="@" read -ra ADDR_USR_PASS_ARRAY <<< "${ADDR_USR_PASS}"
+    ADDR="${ADDR_USR_PASS_ARRAY[0]}"
+    USR="${ADDR_USR_PASS_ARRAY[1]}"
+    PASS="${ADDR_USR_PASS_ARRAY[2]}"
+    if [ -z "${ADDR}" ] ; then
+	read -p "${GREEN}target address:${NORM}" ADDR
+    fi
+    if [ -z "${USR}" ] ; then
+	read -p "${GREEN}${ADDR}'s user:${NORM}" USR
+    fi
+    if [ -z "${PASS}" ] ; then
+	read -sp "${GREEN}${USR}@${ADDR}'s password:${NORM}" PASS
+	echo 
+    fi
+    echo "${GREEN}${USR}@${ADDR}: ${CYAN}${COMMAND}${NORM}"
+    sshpass -p ${PASS} ssh -o "StrictHostKeyChecking=no" -t ${USR}@${ADDR} -- "${COMMAND}"
 }
 
 ## Prepare 
@@ -116,3 +133,6 @@ echo $(BK_RGB 128 0 128)back color is 128 0 128${NORM}
 if [ -n "${message}" ];then
     echo message=${YELLOW}${message}${NORM}
 fi
+
+
+
