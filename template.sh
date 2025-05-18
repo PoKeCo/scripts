@@ -57,13 +57,13 @@ function LOCATE(){
 }
 
 function prepare_ssh(){
-    # $1 : ADDR
+    # Usage : prepare_ssh <ADDR>
     ADDR=$1
     ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "${ADDR}" 
 }
 
 function ssh_exec(){
-    # Usage : <ADDR> <USR> <PASS> <COMMAND>
+    # Usage : ssh_exec <ADDR> <USR> <PASS> <COMMAND>
     ADDR=$1
     USR=$2
     PASS=$3
@@ -73,7 +73,7 @@ function ssh_exec(){
 }
 
 function ssh_rsync(){
-    # Usage : <PASS> <SRC> <DST>
+    # Usage : ssh_rsync <PASS> <SRC> <DST>
     PASS=$1
     SRC=$2
     DST=$3
@@ -81,7 +81,7 @@ function ssh_rsync(){
 }
 
 function rexec(){
-    # Usage : rexec_at <COMMAND> [ADDR[@USR[@PASS]]]
+    # Usage : rexec <COMMAND> [ADDR[@USR[@PASS]]]
     COMMAND=$1
     ADDR_USR_PASS=$2
     IFS="@" read -ra ADDR_USR_PASS_ARRAY <<< "${ADDR_USR_PASS}"
