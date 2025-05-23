@@ -2,7 +2,7 @@
 
 function show_help(){
     echo Usage: ${THIS_SCRIPT} [OPTION]
-    echo This is template of scripts
+    echo 
     echo 
     echo Mandatory arguments to long options are mandatory for short options too.
     printf " %-20s %s\n" "-m <message> " "Show message of argument"
@@ -56,8 +56,8 @@ function LOCATE(){
     printf "\e[%d;%dH" $1 $2
 }
 
-function prepare_ssh(){
-    # Usage : prepare_ssh <ADDR>
+function ssh_prepare(){
+    # Usage : ssh_prepare <ADDR>
     ADDR=$1
     ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "${ADDR}" 
 }
@@ -81,7 +81,7 @@ function ssh_rsync(){
 }
 
 function rexec(){
-    # Usage : rexec <COMMAND> [ADDR[@USR[@PASS]]]
+    # Usage : rexec [ADDR[@USR[@PASS]]] <COMMAND> 
     COMMAND=$1
     ADDR_USR_PASS=$2
     IFS="@" read -ra ADDR_USR_PASS_ARRAY <<< "${ADDR_USR_PASS}"
@@ -99,7 +99,11 @@ function rexec(){
 	echo 
     fi
     echo "${GREEN}${USR}@${ADDR}: ${CYAN}${COMMAND}${NORM}"
-    sshpass -p ${PASS} ssh -o "StrictHostKeyChecking=no" -t ${USR}@${ADDR} -- "${COMMAND}"
+    sshpass -p ${PASS} ssh \
+	    -n \
+	    -o "StrictHostKeyChecking=no" \
+	    -t ${USR}@${ADDR} \
+	    -- "${COMMAND}"
 }
 
 ## Prepare 
@@ -133,6 +137,3 @@ echo $(BK_RGB 128 0 128)back color is 128 0 128${NORM}
 if [ -n "${message}" ];then
     echo message=${YELLOW}${message}${NORM}
 fi
-
-
-
