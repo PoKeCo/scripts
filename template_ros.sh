@@ -72,7 +72,7 @@ function set_cyclone_dds(){
 	export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 	export CYCLONEDDS_URI="file://${CYCLONEDDS_FILE}"
 	echo_info  RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-	echo_infot CYCLONEDDS_URI=${CYCLONEDDS_URI}
+	echo_info  CYCLONEDDS_URI=${CYCLONEDDS_URI}
     fi    
 }
 
