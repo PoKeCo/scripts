@@ -29,6 +29,6 @@ fi
 TARGET_LINK=$(readlink -f ${TARGET})
 
 for ip in $(hostname -I);do
-    echo "scp ${USER}@${ip}:${TARGET_LINK} ."
+    echo "scp -r ${USER}@${ip}:${TARGET_LINK} ."
 done
 
