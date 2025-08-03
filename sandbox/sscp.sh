@@ -1,13 +1,5 @@
 #!/bin/bash
 
-function show_help(){
-    echo Usage: ${THIS_SCRIPT} [OPTION]
-    echo 
-    echo 
-    echo Mandatory arguments to long options are mandatory for short options too.
-    printf " %-20s %s\n" "--help" "Display this help and exit"
-}
-
 function set_escape_sequence(){
     #Forground color 
     BLACK=`printf "\e[30m"`
@@ -28,27 +20,15 @@ function set_escape_sequence(){
     LOCATE_0_0=`printf "\e[0;0H"` # Locate cursor position to 0[raw],0[col]
 }
 
-## Prepare 
-set_escape_sequence
+## Prepare
+TARGET=.
+if [[ ! -z "$1" ]];then
+    TARGET=$1
+fi
 
-SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
+TARGET_LINK=$(readlink -f ${TARGET})
 
-## Parse Argument
-while (( "$#" > 0 ));do
-    arg=$1
-    case ${arg} in
-	--help)
-	    show_help
-	    exit 0
-	    ;;
-    esac
-    shift
+for ip in $(hostname -I);do
+    echo "scp -r ${USER}@${ip}:${TARGET_LINK} ."
 done
 
-## Main
-
-pushd ${SCRIPT_DIR} > /dev/null
-
-
-popd > /dev/null
