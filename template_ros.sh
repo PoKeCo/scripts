@@ -8,8 +8,16 @@ function show_help(){
     printf " %-20s %s\n" "--help" "Display this help and exit"
 }
 
+function echo_note(){
+    echo "${GRAY}[NOTE]:$@${NORM}"
+}
+
 function echo_info(){
-    echo "${GRAY}[INFO]:$@${NORM}"
+    echo "${CYAN}[INFO]:$@${NORM}"
+}
+
+function echo_warning(){
+    echo "${YELLOW}[WARNING]:$@${NORM}"
 }
 
 function echo_error(){
@@ -139,5 +147,4 @@ set_cyclone_dds
 set_jetson
 
 ## Main
-
 popd > /dev/null
