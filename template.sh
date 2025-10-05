@@ -28,6 +28,22 @@ function set_escape_sequence(){
     LOCATE_0_0=`printf "\e[0;0H"` # Locate cursor position to 0[raw],0[col]
 }
 
+function echo_note(){
+    echo "${GRAY}[NOTE]:$@${NORM}"
+}
+
+function echo_info(){
+    echo "${CYAN}[INFO]:$@${NORM}"
+}
+
+function echo_warning(){
+    echo "${YELLOW}[WARNING]:$@${NORM}"
+}
+
+function echo_error(){
+    echo "${RED}[ERROR]:$@${NORM}"
+}
+
 ## Prepare 
 set_escape_sequence
 
@@ -49,6 +65,4 @@ done
 ## Main
 
 pushd ${SCRIPT_DIR} > /dev/null
-
-
 popd > /dev/null
