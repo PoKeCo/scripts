@@ -7,6 +7,18 @@ function show_help(){
     echo Mandatory arguments to long options are mandatory for short options too.
     printf " %-20s %s\n" "--help" "Display this help and exit"
     printf " %-20s %s\n" "-p id"  "Process stop phase ID (0-8). Default: ${proc_stop}"
+
+    echo
+    echo "Phases (the script stops after executing the specified phase):"
+    echo "  0: Create new 'dev' branch."
+    echo "  1: Create new 'feature' branch."
+    echo "  2: Stage all changes."
+    echo "  3: Commit changes."
+    echo "  4: Switch to 'dev' branch."
+    echo "  5: Merge 'feature' branch into 'dev'."
+    echo "  6: Switch to last 'rel' branch."
+    echo "  7: Create new 'rel' branch."
+    echo "  8: Merge 'dev' branch into 'rel'."
 }
 
 function set_escape_sequence(){
@@ -119,6 +131,7 @@ echo is_clean=${is_clean}
 ## Decide git operation
 next="$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
 curr="$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
+feat="${USER}-WIP"
 
 phase_id=9
 case ${rdf_curr_ary[0]} in
@@ -129,13 +142,13 @@ case ${rdf_curr_ary[0]} in
             phase_id=0
             rel="rel-${next}"
             dev="dev-${next}"
-            f="f-${next}-verup"
+            f="f-${next}-${feat}"
         fi
     ;;
     dev)
         rel="rel-${curr}"
         dev=${rdf_curr}
-        f="f-${curr}-verup"
+        f="f-${curr}-${feat}"
         if (( ${is_clean} == 1 ));then
             phase_id=7
         else
