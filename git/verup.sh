@@ -2,6 +2,9 @@
 
 function show_help(){
     echo Usage: ${THIS_SCRIPT} [OPTION]
+    echo
+    echo "This script automates the version-up process based on a git-flow-like branching model."
+    echo "It manages 'rel', 'dev', and 'f' branches."
     echo 
     echo 
     echo Mandatory arguments to long options are mandatory for short options too.
