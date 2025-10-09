@@ -110,12 +110,9 @@ read -ra rel_last_ary <<<$(parse_branch ${rel_last})
 read -ra rdf_curr_ary <<<$(parse_branch ${rdf_curr})
 echo is_clean=${is_clean}
 
-dev_curr="dev-${rdf_curr_ary[1]}.${rdf_curr_ary[2]}.${rdf_curr_ary[3]}"
-f_curr="f-${rdf_curr_ary[1]}.${rdf_curr_ary[2]}.${rdf_curr_ary[3]}-verup"
-echo ${dev_curr}
-echo ${f_curr}
-
 ## Decide git operation
+next="$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
+curr="$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
 
 phase_id=9
 case ${rdf_curr_ary[0]} in
@@ -124,15 +121,15 @@ case ${rdf_curr_ary[0]} in
 	    phase_id=9
 	else
 	    phase_id=0
-	    rel="rel-$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
-	    dev="dev-$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
-	    f="f-$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]-verup"
+	    rel="rel-${next}"
+	    dev="dev-${next}"
+	    f="f-${next}-verup"
 	fi
     ;;
     dev)
-	rel="rel-$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
+	rel="rel-${curr}"
 	dev=${rdf_curr}
-	f="f-$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]-verup"
+	f="f-${curr}-verup"
 	if (( ${is_clean} == 1 ));then
 	    phase_id=7
 	else
@@ -140,8 +137,8 @@ case ${rdf_curr_ary[0]} in
 	fi
     ;;
     f)
-	rel="rel-$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
-	dev="dev-$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
+	rel="rel-${curr}"
+	dev="dev-${curr}"
 	f=${rdf_curr}
 	if (( ${is_clean} == 1 ));then
 	    phase_id=4
