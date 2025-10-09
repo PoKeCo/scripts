@@ -6,6 +6,19 @@ function show_help(){
     echo 
     echo Mandatory arguments to long options are mandatory for short options too.
     printf " %-20s %s\n" "--help" "Display this help and exit"
+    printf " %-20s %s\n" "-p id"  "Process stop phase ID (0-8). Default: ${proc_stop}"
+
+    echo
+    echo "Phases (the script stops after executing the specified phase):"
+    echo "  0: Create new 'dev' branch."
+    echo "  1: Create new 'feature' branch."
+    echo "  2: Stage all changes."
+    echo "  3: Commit changes."
+    echo "  4: Switch to 'dev' branch."
+    echo "  5: Merge 'feature' branch into 'dev'."
+    echo "  6: Switch to last 'rel' branch."
+    echo "  7: Create new 'rel' branch."
+    echo "  8: Merge 'dev' branch into 'rel'."
 }
 
 function set_escape_sequence(){
@@ -52,11 +65,11 @@ function parse_branch(){
     PATCH=
     FEATURE=
     if [[ "${branch}" =~ ^([a-z]+)-([0-9]+)\.([0-9]+)\.([0-9]+)(-(.+))?$ ]];then
-	PREFIX=${BASH_REMATCH[1]}
-	MAJOR=${BASH_REMATCH[2]}
-	MINOR=${BASH_REMATCH[3]}
-	PATCH=${BASH_REMATCH[4]}
-	FEATURE=${BASH_REMATCH[6]}
+        PREFIX=${BASH_REMATCH[1]}
+        MAJOR=${BASH_REMATCH[2]}
+        MINOR=${BASH_REMATCH[3]}
+        PATCH=${BASH_REMATCH[4]}
+        FEATURE=${BASH_REMATCH[6]}
     fi
     echo "${PREFIX} ${MAJOR} ${MINOR} ${PATCH} ${FEATURE}"
     
@@ -69,9 +82,9 @@ function get_branch_name(){
     PATCH=$4
     FEATURE=$5
     if [[ "${FEATURE}" == "" ]];then
-	echo "${PREFIX}-${MAJOR}.${MINOR}.${PATCH}"
+        echo "${PREFIX}-${MAJOR}.${MINOR}.${PATCH}"
     else
-	echo "${PREFIX}-${MAJOR}.${MINOR}.${PATCH}-${FEATURE}"
+        echo "${PREFIX}-${MAJOR}.${MINOR}.${PATCH}-${FEATURE}"
     fi
 }
 
@@ -82,14 +95,19 @@ set_escape_sequence
 SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
 
+proc_stop=8
 ## Parse Argument
 while (( "$#" > 0 ));do
     arg=$1
     case ${arg} in
-	--help)
-	    show_help
-	    exit 0
-	    ;;
+        --help)
+            show_help
+            exit 0
+            ;;
+        -p)
+            shift
+            proc_stop=$1
+            ;;
     esac
     shift
 done
@@ -113,80 +131,83 @@ echo is_clean=${is_clean}
 ## Decide git operation
 next="$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
 curr="$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
+feat="${USER}-WIP"
 
 phase_id=9
 case ${rdf_curr_ary[0]} in
     rel)
-	if (( ${is_clean} == 1 ));then
-	    phase_id=9
-	else
-	    phase_id=0
-	    rel="rel-${next}"
-	    dev="dev-${next}"
-	    f="f-${next}-verup"
-	fi
+        if (( ${is_clean} == 1 ));then
+            phase_id=9
+        else
+            phase_id=0
+            rel="rel-${next}"
+            dev="dev-${next}"
+            f="f-${next}-${feat}"
+        fi
     ;;
     dev)
-	rel="rel-${curr}"
-	dev=${rdf_curr}
-	f="f-${curr}-verup"
-	if (( ${is_clean} == 1 ));then
-	    phase_id=7
-	else
-	    phase_id=1
-	fi
+        rel="rel-${curr}"
+        dev=${rdf_curr}
+        f="f-${curr}-${feat}"
+        if (( ${is_clean} == 1 ));then
+            phase_id=7
+        else
+            phase_id=1
+        fi
     ;;
     f)
-	rel="rel-${curr}"
-	dev="dev-${curr}"
-	f=${rdf_curr}
-	if (( ${is_clean} == 1 ));then
-	    phase_id=4
-	else
-	    phase_id=2
-	fi
+        rel="rel-${curr}"
+        dev="dev-${curr}"
+        f=${rdf_curr}
+        if (( ${is_clean} == 1 ));then
+            phase_id=4
+        else
+            phase_id=2
+        fi
     ;;
 esac
 
 echo "phase_id=${phase_id}"
+echo "proc_stop=${proc_stop}"
 
 ## Do git operation
 
-if (( phase_id <= 0 ));then
+
+if (( phase_id <= 0 && 0 <= proc_stop ));then
     git switch -c ${dev}
 fi
 
-if (( phase_id <= 1 ));then
+if (( phase_id <= 1 && 1 <= proc_stop ));then
     git switch -c ${f}
 fi
 
-if (( phase_id <= 2 ));then
+if (( phase_id <= 2 && 2 <= proc_stop ));then
     git add -A
 fi
 
-if (( phase_id <= 3 ));then
+if (( phase_id <= 3 && 3 <= proc_stop ));then
     comment=$(printf "\n$(git status --porcelain 2>/dev/null)")
     git commit -m "Update:${comment}"
 fi
 
-if (( phase_id <= 4 ));then
+if (( phase_id <= 4 && 4 <= proc_stop ));then
     git switch ${dev}
     err=$?
     if (( ${err} == 128 ));then
-	git switch ${rel_last}
-	git switch -c ${dev}
+        git switch ${rel_last}
+        git switch -c ${dev}
     fi
 fi
 
-if (( phase_id <= 5 ));then
+if (( phase_id <= 5 && 5 <= proc_stop ));then
     git merge --no-ff --no-edit ${f}
 fi
-if (( phase_id <= 6 ));then
+if (( phase_id <= 6 && 6 <= proc_stop ));then
     git switch ${rel_last}
 fi
-if (( phase_id <= 7 ));then
+if (( phase_id <= 7 && 7 <= proc_stop ));then
     git switch -c ${rel}
 fi
-if (( phase_id <= 8 ));then
+if (( phase_id <= 8 && 8 <= proc_stop ));then
     git merge --no-ff --no-edit ${dev}
 fi
