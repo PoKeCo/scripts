@@ -93,6 +93,17 @@ function get_branch_name(){
 
 
 ## Prepare 
+phase_desc[0]="Create new 'dev' branch."
+phase_desc[1]="Create new 'feature' branch."
+phase_desc[2]="Stage all changes."
+phase_desc[3]="Commit changes."
+phase_desc[4]="Switch to 'dev' branch."
+phase_desc[5]="Merge 'feature' branch into 'dev'."
+phase_desc[6]="Switch to last 'rel' branch."
+phase_desc[7]="Create new 'rel' branch."
+phase_desc[8]="Merge 'dev' branch into 'rel'."
+phase_desc[9]="No operation needed. The current branch is a release branch and the working directory is clean."
+
 set_escape_sequence
 
 SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
@@ -129,7 +140,11 @@ fi
 
 read -ra rel_last_ary <<<$(parse_branch ${rel_last})
 read -ra rdf_curr_ary <<<$(parse_branch ${rdf_curr})
-echo is_clean=${is_clean}
+if (( ${is_clean} == 1 )); then
+    echo_info "Working directory is clean."
+else
+    echo_info "Working directory has uncommitted changes."
+fi
 
 ## Decide git operation
 next="$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
@@ -170,8 +185,8 @@ case ${rdf_curr_ary[0]} in
     ;;
 esac
 
-echo "phase_id=${phase_id}"
-echo "proc_stop=${proc_stop}"
+echo_info "Current state      : (phase_id=${phase_id}) -> ${phase_desc[phase_id]}"
+echo_info "Will execute up to : (proc_stop=${proc_stop}) -> ${phase_desc[proc_stop]}"
 
 ## Do git operation
 
