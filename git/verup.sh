@@ -2,6 +2,9 @@
 
 function show_help(){
     echo Usage: ${THIS_SCRIPT} [OPTION]
+    echo
+    echo "This script automates the version-up process based on a git-flow-like branching model."
+    echo "It manages 'rel', 'dev', and 'f' branches."
     echo 
     echo 
     echo Mandatory arguments to long options are mandatory for short options too.
@@ -174,23 +177,28 @@ echo "proc_stop=${proc_stop}"
 
 
 if (( phase_id <= 0 && 0 <= proc_stop ));then
+    echo_info "Phase 0: Create new 'dev' branch."
     git switch -c ${dev}
 fi
 
 if (( phase_id <= 1 && 1 <= proc_stop ));then
+    echo_info "Phase 1: Create new 'feature' branch."
     git switch -c ${f}
 fi
 
 if (( phase_id <= 2 && 2 <= proc_stop ));then
+    echo_info "Phase 2: Stage all changes."
     git add -A
 fi
 
 if (( phase_id <= 3 && 3 <= proc_stop ));then
+    echo_info "Phase 3: Commit changes."
     comment=$(printf "\n$(git status --porcelain 2>/dev/null)")
     git commit -m "Update:${comment}"
 fi
 
 if (( phase_id <= 4 && 4 <= proc_stop ));then
+    echo_info "Phase 4: Switch to 'dev' branch."
     git switch ${dev}
     err=$?
     if (( ${err} == 128 ));then
@@ -200,14 +208,18 @@ if (( phase_id <= 4 && 4 <= proc_stop ));then
 fi
 
 if (( phase_id <= 5 && 5 <= proc_stop ));then
+    echo_info "Phase 5: Merge 'feature' branch into 'dev'."
     git merge --no-ff --no-edit ${f}
 fi
 if (( phase_id <= 6 && 6 <= proc_stop ));then
+    echo_info "Phase 6: Switch to last 'rel' branch."
     git switch ${rel_last}
 fi
 if (( phase_id <= 7 && 7 <= proc_stop ));then
+    echo_info "Phase 7: Create new 'rel' branch."
     git switch -c ${rel}
 fi
 if (( phase_id <= 8 && 8 <= proc_stop ));then
+    echo_info "Phase 8: Merge 'dev' branch into 'rel'."
     git merge --no-ff --no-edit ${dev}
 fi
