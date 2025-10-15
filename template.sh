@@ -1,4 +1,32 @@
 #!/bin/bash
+function main(){
+    ## Prepare 
+    set_escape_sequence
+
+    SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+    THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
+
+    ## Parse Argument
+    args=""
+    while (( "$#" > 0 ));do
+        arg=$1
+        case ${arg} in
+        --help)
+            show_help
+            exit 0
+            ;;
+        *)
+            args="${args} ${arg}"
+            ;;            
+        esac
+        shift
+    done
+
+    ## Core
+    pushd ${SCRIPT_DIR} > /dev/null
+    echo_note "non-parsed argument(s)=${args}"
+    popd > /dev/null
+}
 
 function show_help(){
     echo Usage: ${THIS_SCRIPT} [OPTION]
@@ -44,25 +72,4 @@ function echo_error(){
     echo "${RED}[ERROR]:$@${NORM}"
 }
 
-## Prepare 
-set_escape_sequence
-
-SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
-
-## Parse Argument
-while (( "$#" > 0 ));do
-    arg=$1
-    case ${arg} in
-	--help)
-	    show_help
-	    exit 0
-	    ;;
-    esac
-    shift
-done
-
-## Main
-
-pushd ${SCRIPT_DIR} > /dev/null
-popd > /dev/null
+main $@
