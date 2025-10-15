@@ -1,4 +1,41 @@
 #!/bin/bash
+function main(){
+    ## Prepare 
+    set_escape_sequence
+
+    SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+    THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
+
+    ## Parse Argument
+    args=""
+    while (( "$#" > 0 ));do
+        arg=$1
+        case ${arg} in
+        -m)
+            shift
+            message=$1
+            ;;
+        --help)
+            show_help
+            exit 0
+            ;;
+        *)
+            args="${args} ${arg}"
+            ;;            
+        esac
+        shift
+    done
+    
+    ## Core
+    echo ${CYAN}${SCRIPT_DIR}${NORM}
+    echo $(RGB 128 128 0)color is 128 128 0${NORM}
+    echo $(BK_RGB 128 0 128)back color is 128 0 128${NORM}
+    if [ -n "${message}" ];then
+        echo message=${YELLOW}${message}${NORM}
+    fi
+    echo_note "non-parsed argument(s)=${args}"
+
+}
 
 function show_help(){
     echo Usage: ${THIS_SCRIPT} [OPTION]
@@ -7,6 +44,22 @@ function show_help(){
     echo Mandatory arguments to long options are mandatory for short options too.
     printf " %-20s %s\n" "-m <message> " "Show message of argument"
     printf " %-20s %s\n" "--help" "Display this help and exit"
+}
+
+function echo_note(){
+    echo "${GRAY}[NOTE]:$@${NORM}"
+}
+
+function echo_info(){
+    echo "${CYAN}[INFO]:$@${NORM}"
+}
+
+function echo_warning(){
+    echo "${YELLOW}[WARNING]:$@${NORM}"
+}
+
+function echo_error(){
+    echo "${RED}[ERROR]:$@${NORM}"
 }
 
 function set_escape_sequence(){
@@ -89,51 +142,21 @@ function rexec(){
     USR="${ADDR_USR_PASS_ARRAY[1]}"
     PASS="${ADDR_USR_PASS_ARRAY[2]}"
     if [ -z "${ADDR}" ] ; then
-	read -p "${GREEN}target address:${NORM}" ADDR
+    read -p "${GREEN}target address:${NORM}" ADDR
     fi
     if [ -z "${USR}" ] ; then
-	read -p "${GREEN}${ADDR}'s user:${NORM}" USR
+    read -p "${GREEN}${ADDR}'s user:${NORM}" USR
     fi
     if [ -z "${PASS}" ] ; then
-	read -sp "${GREEN}${USR}@${ADDR}'s password:${NORM}" PASS
-	echo 
+    read -sp "${GREEN}${USR}@${ADDR}'s password:${NORM}" PASS
+    echo 
     fi
     echo "${GREEN}${USR}@${ADDR}: ${CYAN}${COMMAND}${NORM}"
     sshpass -p ${PASS} ssh \
-	    -n \
-	    -o "StrictHostKeyChecking=no" \
-	    -t ${USR}@${ADDR} \
-	    -- "${COMMAND}"
+        -n \
+        -o "StrictHostKeyChecking=no" \
+        -t ${USR}@${ADDR} \
+        -- "${COMMAND}"
 }
 
-## Prepare 
-set_escape_sequence
-
-SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
-
-## Parse Argument
-
-while (( "$#" > 0 ));do
-    arg=$1
-    case ${arg} in
-	-m)
-	    shift
-	    message=$1
-	    ;;
-	--help)
-	    show_help
-	    exit 0
-	    ;;
-    esac
-    shift
-done
-
-## Main
-
-echo ${CYAN}${SCRIPT_DIR}${NORM}
-echo $(RGB 128 128 0)color is 128 128 0${NORM}
-echo $(BK_RGB 128 0 128)back color is 128 0 128${NORM}
-if [ -n "${message}" ];then
-    echo message=${YELLOW}${message}${NORM}
-fi
+main $@
