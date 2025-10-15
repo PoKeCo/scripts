@@ -149,7 +149,8 @@ fi
 ## Decide git operation
 next="$[rel_last_ary[1]].$[rel_last_ary[2]].$[rel_last_ary[3]+1]"
 curr="$[rdf_curr_ary[1]].$[rdf_curr_ary[2]].$[rdf_curr_ary[3]]"
-feat="${USER}-WIP"
+#feat="${USER}-WIP"
+feat=""
 
 phase_id=9
 case ${rdf_curr_ary[0]} in
@@ -160,12 +161,18 @@ case ${rdf_curr_ary[0]} in
             phase_id=0
             rel="rel-${next}"
             dev="dev-${next}"
+	    if [[ -z "${feat}" ]];then
+		read -p "Input feature name : " -r feat
+	    fi
             f="f-${next}-${feat}"
         fi
     ;;
     dev)
         rel="rel-${curr}"
         dev=${rdf_curr}
+	if [[ -z "${feat}" ]];then
+	    read -p "Input feature name : " -r feat
+	fi
         f="f-${curr}-${feat}"
         if (( ${is_clean} == 1 ));then
             phase_id=7
@@ -209,7 +216,8 @@ fi
 if (( phase_id <= 3 && 3 <= proc_stop ));then
     echo_info "Phase 3: Commit changes."
     comment=$(printf "\n$(git status --porcelain 2>/dev/null)")
-    git commit -m "Update:${comment}"
+    #git commit -m "Update:${comment}"
+    git commit
 fi
 
 if (( phase_id <= 4 && 4 <= proc_stop ));then

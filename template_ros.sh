@@ -27,6 +27,7 @@ function echo_error(){
 function install_setup_bash(){
     while [[ "$(pwd)" != "/" ]];do
 	if [[ -e ./install/setup.bash ]];then
+	    WORKSPACE=$(pwd)
 	    echo_info "$(pwd)/install/setup.bash"
 	    source ./install/setup.bash
 	    return "$?"
