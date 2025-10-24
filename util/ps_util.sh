@@ -9,6 +9,7 @@ function main(){
     ## Parse Argument
     args=""
     opt=""
+    name="ps_stamp"
     while (( "$#" > 0 ));do
         arg=$1
         case ${arg} in
@@ -25,6 +26,10 @@ function main(){
         -c)
 	    opt="clean"
             ;;
+        -n)
+	    shift
+	    name="$1"
+            ;;
         *)
             args="${args} ${arg}"
             ;;            
@@ -34,8 +39,8 @@ function main(){
 
     ## Core
     THIS_PID="$$"
-    PS_STAMP_SNAP=/tmp/ps_stamp_snap.txt
-    PS_STAMP=/tmp/ps_stamp.txt
+    PS_STAMP_SNAP=/tmp/${name}_snap.txt
+    PS_STAMP=/tmp/${name}.txt
     pushd ${SCRIPT_DIR} > /dev/null
     case "${opt}" in
 	"snap")
@@ -80,6 +85,7 @@ function show_help(){
     printf " %-20s %s\n" "-s"     "Save Current PIDs"
     printf " %-20s %s\n" "-k"     "Kill process w/o Saved PIDs"
     printf " %-20s %s\n" "-c"     "Clear PID files"
+    printf " %-20s %s\n" "-n <name>" "Specify PIDs files prefix"
     printf " %-20s %s\n" "(no option)" "Show process w/o Saved PIDs"
 }
 
