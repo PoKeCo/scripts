@@ -1,4 +1,32 @@
 #!/bin/bash
+function main(){
+    ## Prepare 
+    set_escape_sequence
+
+    SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+    THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
+
+    ## Parse Argument
+    args=""
+    while (( "$#" > 0 ));do
+        arg=$1
+        case ${arg} in
+        --help)
+            show_help
+            exit 0
+            ;;
+        *)
+            args="${args} ${arg}"
+            ;;            
+        esac
+        shift
+    done
+
+    ## Core
+    pushd ${SCRIPT_DIR} > /dev/null
+    echo_note "non-parsed argument(s)=${args}"
+    popd > /dev/null
+}
 
 function show_help(){
     echo Usage: ${THIS_SCRIPT} [OPTION]
@@ -28,27 +56,20 @@ function set_escape_sequence(){
     LOCATE_0_0=`printf "\e[0;0H"` # Locate cursor position to 0[raw],0[col]
 }
 
-## Prepare 
-set_escape_sequence
+function echo_note(){
+    echo "${GRAY}[NOTE]:$@${NORM}"
+}
 
-SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-THIS_SCRIPT=$(basename ${BASH_SOURCE[0]})
+function echo_info(){
+    echo "${CYAN}[INFO]:$@${NORM}"
+}
 
-## Parse Argument
-while (( "$#" > 0 ));do
-    arg=$1
-    case ${arg} in
-	--help)
-	    show_help
-	    exit 0
-	    ;;
-    esac
-    shift
-done
+function echo_warning(){
+    echo "${YELLOW}[WARNING]:$@${NORM}"
+}
 
-## Main
+function echo_error(){
+    echo "${RED}[ERROR]:$@${NORM}"
+}
 
-pushd ${SCRIPT_DIR} > /dev/null
-
-
-popd > /dev/null
+main $@
