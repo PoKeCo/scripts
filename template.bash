@@ -1,5 +1,5 @@
 #!/bin/bash
-# 基本テンプレート。使い方: このファイルをコピーして編集する。
+# Basic template. Copy this file and edit it.
 
 function usage(){
     echo "Usage: ${THIS_SCRIPT} [OPTION]"
@@ -12,16 +12,16 @@ function main(){
     SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
     THIS_SCRIPT=$(basename "${BASH_SOURCE[0]}")
 
-    # benlib.sh のパスはこのスクリプトの配置場所に応じて変更すること
-    # 同階層: "${SCRIPT_DIR}/benlib.sh"
-    # 1段下のディレクトリにある場合: "${SCRIPT_DIR}/../benlib.sh"
+    # Adjust the path to benlib.sh based on where this script is placed:
+    #   same directory : "${SCRIPT_DIR}/benlib.sh"
+    #   one level down : "${SCRIPT_DIR}/../benlib.sh"
     source "${SCRIPT_DIR}/benlib.sh"
     set_escape_sequence
 
-    # デフォルト値
+    # Default values
     args=""
 
-    # オプション解析
+    # Option parsing
     while (( "$#" > 0 )); do
         case "$1" in
             --help) usage; exit 0 ;;

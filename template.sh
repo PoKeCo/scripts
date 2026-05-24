@@ -1,5 +1,5 @@
 #!/bin/bash
-# [非推奨] このファイルは旧形式です。新規スクリプトには template.bash を使用してください。
+# [DEPRECATED] This file uses the old format. Use template.bash for new scripts.
 
 function main(){
     ## Prepare 
