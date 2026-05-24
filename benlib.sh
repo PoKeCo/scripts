@@ -1,20 +1,20 @@
 #!/bin/bash
 # =============================================================================
-# benlib.sh — 共通ライブラリ
+# benlib.sh — Shared library for shell scripts
 #
-# 使い方（各スクリプトの main() 冒頭に記述）:
+# Usage in your script:
 #   SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
-#   source "${SCRIPT_DIR}/benlib.sh"       # スクリプトと同じ階層の場合
-#   source "${SCRIPT_DIR}/../benlib.sh"    # 1段下のディレクトリにある場合
+#   source "${SCRIPT_DIR}/benlib.sh"       # when benlib.sh is in the same directory
+#   source "${SCRIPT_DIR}/../benlib.sh"    # when the script is one level below
 #   set_escape_sequence
 # =============================================================================
 
 # =============================================================================
-# Section 1: ターミナルカラー / カーソル制御
+# Section 1: Terminal Color / Cursor Control
 # =============================================================================
 
 function set_escape_sequence(){
-    # 前景色
+    # Foreground colors
     BLACK=$(printf "\e[30m")
     RED=$(printf "\e[31m")
     GREEN=$(printf "\e[32m")
@@ -26,7 +26,7 @@ function set_escape_sequence(){
     GRAY=$(printf "\e[38;2;128;128;128m")
     DGRAY=$(printf "\e[38;2;64;64;64m")
 
-    # 背景色
+    # Background colors
     BK_BLACK=$(printf "\e[40m")
     BK_RED=$(printf "\e[41m")
     BK_GREEN=$(printf "\e[42m")
@@ -38,12 +38,12 @@ function set_escape_sequence(){
     BK_GRAY=$(printf "\e[48;2;128;128;128m")
     BK_DGRAY=$(printf "\e[48;2;64;64;64m")
 
-    NORM=$(printf "\e[0m")          # 色リセット
-    CLS=$(printf "\e[2J")           # 画面クリア
-    CLL=$(printf "\e[2K")           # 行クリア
-    LOCATE_0_0=$(printf "\e[0;0H")  # カーソルを左上へ
+    NORM=$(printf "\e[0m")          # Reset to default
+    CLS=$(printf "\e[2J")           # Clear screen
+    CLL=$(printf "\e[2K")           # Clear line
+    LOCATE_0_0=$(printf "\e[0;0H")  # Move cursor to top-left
 
-    # -v オプションで色見本を表示
+    # Pass -v to print color swatches
     if [[ "${1:-}" == "-v" ]]; then
         for _c in BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE GRAY DGRAY NORM; do
             echo -e "${!_c} ${_c} ${NORM}"
@@ -52,22 +52,22 @@ function set_escape_sequence(){
 }
 
 function RGB(){
-    # 任意の前景色を指定  Usage: $(RGB <R> <G> <B>)
+    # Arbitrary foreground color  Usage: $(RGB <R> <G> <B>)
     printf "\e[38;2;%d;%d;%dm" "$1" "$2" "$3"
 }
 
 function BK_RGB(){
-    # 任意の背景色を指定  Usage: $(BK_RGB <R> <G> <B>)
+    # Arbitrary background color  Usage: $(BK_RGB <R> <G> <B>)
     printf "\e[48;2;%d;%d;%dm" "$1" "$2" "$3"
 }
 
 function LOCATE(){
-    # カーソル移動  Usage: $(LOCATE <ROW> <COL>)
+    # Move cursor  Usage: $(LOCATE <ROW> <COL>)
     printf "\e[%d;%dH" "$1" "$2"
 }
 
 # =============================================================================
-# Section 2: ログ出力
+# Section 2: Logging
 # =============================================================================
 
 function echo_note(){
@@ -87,31 +87,33 @@ function echo_error(){
 }
 
 function show_var(){
-    # 変数名を渡すと "NAME=value" を表示  Usage: show_var VAR_NAME
+    # Print "NAME=value" for debugging  Usage: show_var VAR_NAME
     echo "$1=${!1}"
 }
 
 # =============================================================================
-# Section 3: エラーハンドリング
+# Section 3: Error Handling
 # =============================================================================
 
 function enable_strict_mode(){
-    # main() の冒頭で呼ぶと、未定義変数・コマンド失敗を即座に検出できる。
+    # Call at the top of main() to immediately catch unbound variables and
+    # command failures.
     #
-    # 注意:
-    #   - if/while の条件式で意図的に失敗を許容している場合は使わないこと。
-    #   - set -u により、未初期化変数の参照でエラーになる。
-    #     ${VAR:-default} 形式で安全に参照すること。
+    # Notes:
+    #   - Avoid using this when intentional failures are expected in
+    #     if/while conditions.
+    #   - set -u causes an error on unbound variable references.
+    #     Use ${VAR:-default} for safe access.
     set -euo pipefail
     trap '_benlib_err_handler ${LINENO} "${BASH_COMMAND}" $?' ERR
 }
 
 function _benlib_err_handler(){
-    echo_error "line $1: '$2' が失敗しました (exit $3)"
+    echo_error "line $1: '$2' failed (exit $3)"
 }
 
 # =============================================================================
-# Section 4: SSH / リモート実行ユーティリティ
+# Section 4: SSH / Remote Execution Utilities
 # =============================================================================
 
 function uuid_gen(){
@@ -119,17 +121,17 @@ function uuid_gen(){
 }
 
 function is_number(){
-    # 数値なら 0、それ以外なら 1 を返す  Usage: is_number <value>
+    # Returns 0 if the value is numeric, 1 otherwise  Usage: is_number <value>
     [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]]
 }
 
 function prepare_ssh(){
-    # 接続前に known_hosts の古いエントリを削除する  Usage: prepare_ssh <ADDR>
+    # Remove stale known_hosts entry before connecting  Usage: prepare_ssh <ADDR>
     ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "$1" 2>/dev/null || true
 }
 
 function ssh_exec(){
-    # SSH でコマンドを実行（結果を現在のターミナルに表示）
+    # Execute a command on a remote host and display output in the current terminal
     # Usage: ssh_exec <ADDR> <USR> <PASS> <COMMAND>
     local addr="$1" usr="$2" pass="$3" command="$4"
     echo "${GREEN}${usr}@${addr}: ${CYAN}${command}${NORM}"
@@ -137,12 +139,13 @@ function ssh_exec(){
 }
 
 function ssh_rsync(){
-    # SSH 経由でファイルを同期  Usage: ssh_rsync <PASS> <SRC> <DST>
+    # Sync files over SSH  Usage: ssh_rsync <PASS> <SRC> <DST>
     sshpass -p "$1" rsync -e "ssh -o StrictHostKeyChecking=no" -avzP "$2" "$3"
 }
 
 function rexec(){
-    # SSH でコマンドを実行（認証情報が不足していれば対話的に補完）
+    # Execute a command on a remote host via SSH.
+    # Credentials missing from ADDR@USR@PASS are prompted interactively.
     # Usage: rexec <ADDR[@USR[@PASS]]> <COMMAND>
     local addr_usr_pass="$1" command="$2"
     local addr="" usr="" pass=""
@@ -158,8 +161,8 @@ function rexec(){
 }
 
 function lexec(){
-    # コマンドを現在のシェルでローカル実行する（gnome-terminal タブなし）
-    # 終了コードは ${RETURN_VALUE_FILE} ファイルに書き込まれる
+    # Run a command locally in the current shell (no gnome-terminal tab).
+    # Sets global RETURN_VALUE_FILE to the file where the exit code is written.
     # Usage: lexec <WAIT_OPT> <COMMAND>
     local wait_opt="$1" command="$2"
     local id; id=$(uuid_gen)
@@ -174,35 +177,36 @@ function lexec(){
 }
 
 # =============================================================================
-# Section 5: gnome-terminal 実行ヘルパー
+# Section 5: gnome-terminal Execution Helpers
 # =============================================================================
 #
-# WINDOW_MODE 引数の意味:
-#   k  実行後もタブを開いたまま（デフォルト）
-#   e  成功時はタブを閉じ、失敗時は開いたまま
-#   f  成功・失敗に関わらず常にタブを閉じる
+# WINDOW_MODE argument:
+#   k  keep the tab open regardless of result          (default)
+#   e  close on success, keep open on error
+#   f  always close  (fire and forget)
 #
-# WAIT_OPT 引数の意味:
-#   w    コマンド完了まで呼び出し元をブロックする
-#   0    即座に戻る（ノンブロッキング）
-#   <N>  N 秒スリープしてから戻る（ノンブロッキング）
+# WAIT_OPT argument:
+#   w     block the caller until the tab's command finishes
+#   0     return immediately (non-blocking)
+#   <N>   return immediately; caller should sleep N seconds separately
 #
-# 各関数は終了後に RETURN_VALUE_FILE にタブの終了コードが書かれるパスを設定する。
-# 複数タブを並列起動する場合は、各呼び出し直後に値を別変数に保存すること:
+# After each call, RETURN_VALUE_FILE holds the path to a file that will
+# contain the tab's exit code once it completes.
+# When launching multiple tabs in parallel, save the value immediately:
 #   gnome_terminal_rexec ...
 #   my_ret_file[$i]="${RETURN_VALUE_FILE}"
 
 function _benlib_setup_window_mode(){
-    # 内部ヘルパー: err_bash / suc_bash を設定する
+    # Internal helper: set err_bash / suc_bash based on window mode
     case "$1" in
         e) err_bash="bash"; suc_bash="exit" ;;
         f) err_bash="exit"; suc_bash="exit" ;;
-        *) err_bash="bash"; suc_bash="bash" ;;  # k またはデフォルト
+        *) err_bash="bash"; suc_bash="bash" ;;  # k or default: keep open
     esac
 }
 
 function gnome_terminal_rexec(){
-    # SSH 経由のコマンドを新しい gnome-terminal タブで実行する
+    # Run a command on a remote host in a new gnome-terminal tab via SSH.
     # Usage: gnome_terminal_rexec <WINDOW_MODE> <WAIT_OPT> <ADDR[@USR[@PASS]]> <COMMAND>
     local window_mode="$1" wait_opt="$2" addr_usr_pass="$3" command="$4"
     local addr="" usr="" pass="" err_bash="" suc_bash=""
@@ -222,7 +226,7 @@ function gnome_terminal_rexec(){
     local done_file="/tmp/benlib_done_${id}"
     RETURN_VALUE_FILE="/tmp/benlib_return_${id}"
 
-    # 多重エスケープを避けるため、タブの処理を一時スクリプトファイルに書き出す
+    # Write the tab logic to a temp script to avoid multi-level escape issues
     local script_file="/tmp/benlib_script_${id}.sh"
     cat > "${script_file}" << SCRIPT_EOF
 #!/bin/bash
@@ -248,7 +252,7 @@ SCRIPT_EOF
 }
 
 function gnome_terminal_lexec(){
-    # コマンドを新しい gnome-terminal タブでローカル実行する
+    # Run a command locally in a new gnome-terminal tab.
     # Usage: gnome_terminal_lexec <WINDOW_MODE> <WAIT_OPT> <COMMAND>
     local window_mode="$1" wait_opt="$2" command="$3"
     local err_bash="" suc_bash=""
@@ -286,12 +290,12 @@ SCRIPT_EOF
 }
 
 # =============================================================================
-# Section 6: スクリプト雛形生成
+# Section 6: Script Scaffolding
 # =============================================================================
 
 function echo_template(){
-    # benlib.sh を source する新しいスクリプトの雛形を標準出力に書き出す。
-    # benlib.sh への相対パスはスクリプトの配置場所に応じて調整すること。
+    # Print a script template that already sources benlib.sh to stdout.
+    # Adjust the path to benlib.sh based on where the generated script is placed.
     cat << 'TMPL'
 #!/bin/bash
 
@@ -306,16 +310,16 @@ function main(){
     SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
     THIS_SCRIPT=$(basename "${BASH_SOURCE[0]}")
 
-    # benlib.sh のパスはこのスクリプトの配置場所に応じて変更すること
-    # 同階層: "${SCRIPT_DIR}/benlib.sh"
-    # 1段上: "${SCRIPT_DIR}/../benlib.sh"
+    # Adjust the path to benlib.sh based on where this script is placed:
+    #   same directory : "${SCRIPT_DIR}/benlib.sh"
+    #   one level down : "${SCRIPT_DIR}/../benlib.sh"
     source "${SCRIPT_DIR}/benlib.sh"
     set_escape_sequence
 
-    # デフォルト値
+    # Default values
     VALUE="none"
 
-    # オプション解析 (-o: 短いオプション, -l: 長いオプション, :: は任意引数)
+    # Option parsing  (-o: short options, -l: long options, :: optional arg)
     PARSED=$(getopt -o "hv:" -l "help,value:" -- "$@")
     if (( $? != 0 )); then echo_error "Invalid options"; exit 1; fi
     eval set -- "${PARSED}"
@@ -336,7 +340,8 @@ TMPL
 }
 
 function create_scripts(){
-    # 雛形から新しいスクリプトファイルを生成する  Usage: create_scripts <file> [<file> ...]
+    # Create new script files from the built-in template and make them executable.
+    # Usage: create_scripts <file> [<file> ...]
     while (( "$#" > 0 )); do
         echo_info "Create $1"
         echo_template > "$1"

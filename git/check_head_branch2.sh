@@ -46,7 +46,7 @@ function run_core(){
         case "${target_branch}" in
             rel-*) printf "${CYAN}"    ;;
             dev-*) printf "${YELLOW}"  ;;
-            f-*)   printf "${MAGENTA}" ;;  # 修正: MAZENDA → MAGENTA
+            f-*)   printf "${MAGENTA}" ;;  # Fixed: MAZENDA → MAGENTA
             *)     printf "${RED}"     ;;
         esac
     fi

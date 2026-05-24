@@ -1,7 +1,7 @@
 #!/bin/bash
-# SSH 実行・RGB カラー拡張テンプレート。
-# ssh_exec / ssh_rsync / rexec / RGB / BK_RGB / LOCATE などを利用する場合の出発点。
-# 使い方: このファイルをコピーして編集する。
+# Template for scripts using SSH execution and extended color utilities.
+# Reference for ssh_exec / ssh_rsync / rexec / RGB / BK_RGB / LOCATE.
+# Copy this file and edit it.
 
 function usage(){
     echo "Usage: ${THIS_SCRIPT} [OPTION]"
@@ -28,7 +28,7 @@ function main(){
         shift
     done
 
-    # 色の確認（RGB / BK_RGB は benlib.sh で定義済み）
+    # Color check (RGB / BK_RGB are defined in benlib.sh)
     echo "${CYAN}SCRIPT_DIR=${SCRIPT_DIR}${NORM}"
     echo "$(RGB 128 128 0)foreground RGB(128,128,0)${NORM}"
     echo "$(BK_RGB 128 0 128)background RGB(128,0,128)${NORM}"

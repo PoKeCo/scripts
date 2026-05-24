@@ -2,27 +2,27 @@
 # =============================================================================
 # boot_general.sh
 #
-# 注意: このファイルは実験用サンドボックスです。
-# 汎用テンプレートとして整備されたものは ../template_boot.sh を参照してください。
-# このファイルを利用する場合は ../template_boot.sh をコピーして編集することを推奨します。
+# NOTE: This file is an experimental sandbox.
+# For the general-purpose template, see ../template_boot.sh.
+# It is recommended to copy ../template_boot.sh and edit it instead.
 # =============================================================================
 #
-# SEQUENCE_LIST のフォーマット（区切り文字は「:」）:
+# SEQUENCE_LIST format (delimiter: ":"):
 #   HOST:COMMAND:WINDOW_MODE:WAIT_OPT
 #
-#   HOST         ADDR@USR@PASS  (SSH接続)  / localhost  / .  (ローカル直接実行)
-#   COMMAND      実行コマンド（コマンド内に「:」を含めないこと）
-#   WINDOW_MODE  k=開いたまま  e=成功時に閉じる  f=常に閉じる
-#   WAIT_OPT     w=完了まで待機  0=待機なし  N=N秒後に次へ
+#   HOST         ADDR@USR@PASS (SSH)  / localhost  / .  (run locally inline)
+#   COMMAND      shell command to run (must not contain ":")
+#   WINDOW_MODE  k=keep tab open  e=close on success  f=always close
+#   WAIT_OPT     w=wait until done  0=no wait  N=sleep N seconds then proceed
 
 function on_all_success(){
-    echo_info "全シーケンスが正常に完了しました。"
-    # 必要に応じてここに後処理を記述する
+    echo_info "All sequences completed successfully."
+    # Add any post-processing here if needed.
 }
 
 function on_any_failure(){
-    echo_warning "失敗したシーケンスがあります。"
-    # 必要に応じてここにエラー処理を記述する
+    echo_warning "One or more sequences failed."
+    # Add error handling here if needed.
 }
 
 function show_help(){
@@ -31,7 +31,7 @@ function show_help(){
     printf " %-20s %s\n" "--help" "Display this help and exit"
 }
 
-## ── ユーザー設定 ─────────────────────────────────────────────────────────────
+## ── User configuration ───────────────────────────────────────────────────────
 
 SEQUENCE_LIST=$(cat << 'EOF'
 # HOST                  :COMMAND           :WINDOW_MODE:WAIT_OPT
@@ -43,7 +43,7 @@ localhost               :echo "process 5"  :f          :0
 EOF
 )
 
-## ── エンジン（変更不要）─────────────────────────────────────────────────────
+## ── Engine (do not modify) ───────────────────────────────────────────────────
 
 function _run_sequences(){
     declare -A _seqs _hosts _cmds _wmodes _wopts _ret_files
@@ -84,7 +84,7 @@ function _run_sequences(){
         _ret_files[$i]="${RETURN_VALUE_FILE}"
 
         if is_number "${_wopt}" && [[ "${_wopt}" != "0" ]]; then
-            echo_note "${_wopt}秒待機..."
+            echo_note "Waiting ${_wopt}s..."
             sleep "${_wopt}"
         fi
     done
@@ -106,7 +106,7 @@ function _run_sequences(){
     (( _sum_err == 0 )) && on_all_success || on_any_failure
 }
 
-## ── メイン ───────────────────────────────────────────────────────────────────
+## ── Main ─────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
 THIS_SCRIPT=$(basename "${BASH_SOURCE[0]}")
