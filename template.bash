@@ -1,90 +1,36 @@
 #!/bin/bash
+# Basic template. Copy this file and edit it.
+
+function usage(){
+    echo "Usage: ${THIS_SCRIPT} [OPTION]"
+    echo
+    echo "Mandatory arguments to long options are mandatory for short options too."
+    printf " %-20s %s\n" "--help" "Display this help and exit"
+}
+
 function main(){
-    ## Prepare 
-    set_escape_sequence
-    SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
-    SCRIPT_DIR=$(readlink -f "${SCRIPT_DIR}")
-
+    SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
     THIS_SCRIPT=$(basename "${BASH_SOURCE[0]}")
-    THIS_SCRIPT=$(basename "${THIS_SCRIPT}")
 
-    ## Parse Argument
+    # Adjust the path to benlib.sh based on where this script is placed:
+    #   same directory : "${SCRIPT_DIR}/benlib.sh"
+    #   one level down : "${SCRIPT_DIR}/../benlib.sh"
+    source "${SCRIPT_DIR}/benlib.sh"
+    set_escape_sequence
+
+    # Default values
     args=""
-    while (( "$#" > 0 ));do
-        arg=$1
-        case ${arg} in
-        --help)
-            show_help
-            exit 0
-            ;;
-        *)
-            args="${args} ${arg}"
-            ;;            
+
+    # Option parsing
+    while (( "$#" > 0 )); do
+        case "$1" in
+            --help) usage; exit 0 ;;
+            *)      args="${args} $1" ;;
         esac
         shift
     done
 
-    ## Core
-    pushd "${SCRIPT_DIR}" > /dev/null || return
     echo_note "non-parsed argument(s)=${args}"
-    echo "${LOCATE_0_0}"
-    echo "${CLS}"
-    echo "${CLL}"
-    echo "${BLACK}BLACK${NORM}"
-    echo "${RED}RED${NORM}"
-    echo "${GREEN}GREEN${NORM}"
-    echo "${YELLOW}YELLOW${NORM}"
-    echo "${BLUE}BLUE${NORM}"
-    echo "${MAGENTA}MAGENTA${NORM}"
-    echo "${CYAN}CYAN${NORM}"
-    echo "${WHITE}WHITE${NORM}"
-    echo "${GRAY}GRAY${NORM}"
-    echo "${DGRAY}DGRAY${NORM}"
-    popd > /dev/null || return 
-}
-
-function show_help(){
-    echo "Usage: ${THIS_SCRIPT} [OPTION]"
-    echo 
-    echo 
-    echo Mandatory arguments to long options are mandatory for short options too.
-    printf " %-20s %s\n" "--help" "Display this help and exit"
-}
-
-function set_escape_sequence(){
-    #Forground color 
-    BLACK=$(printf "\e[30m")
-    RED=$(printf "\e[31m")
-    GREEN=$(printf "\e[32m")
-    YELLOW=$(printf "\e[33m")
-    BLUE=$(printf "\e[34m")
-    MAGENTA=$(printf "\e[35m")
-    CYAN=$(printf "\e[36m")
-    WHITE=$(printf "\e[37m")
-    GRAY=$(printf "\e[38;2;128;128;128m") # You can specify R,G,B
-    DGRAY=$(printf "\e[38;2;64;64;64m") # You can specify R,G,B
-    
-    NORM=$(printf "\e[0m") # Return to default color
-    
-    CLS=$(printf "\e[2J") # CLear Screen
-    CLL=$(printf "\e[2K") # CLear Line
-    LOCATE_0_0=$(printf "\e[0;0H") # Locate cursor position to 0[raw],0[col]
-}
-
-function echo_note(){
-    echo "${GRAY}[NOTE]:$*${NORM}"
-}
-
-function echo_info(){
-    echo "${CYAN}[INFO]:$*${NORM}"
-}
-
-function echo_warning(){
-    echo "${YELLOW}[WARNING]:$*${NORM}"
-}
-
-function echo_error(){
-    echo "${RED}[ERROR]:$*${NORM}"
 }
 
 main "$@"

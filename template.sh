@@ -1,4 +1,6 @@
 #!/bin/bash
+# [DEPRECATED] This file uses the old format. Use template.bash for new scripts.
+
 function main(){
     ## Prepare 
     set_escape_sequence
