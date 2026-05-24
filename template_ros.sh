@@ -1,7 +1,7 @@
 #!/bin/bash
-# ROS2 + Jetson 対応テンプレート。
-# ROS2 ワークスペースの自動検出・DDS 設定・Jetson チューニングを含む。
-# 使い方: このファイルをコピーして編集する。
+# Template for ROS2 + Jetson scripts.
+# Includes workspace auto-detection, DDS configuration, and Jetson tuning.
+# Copy this file and edit it.
 
 function usage(){
     echo "Usage: ${THIS_SCRIPT} [OPTION]"
@@ -10,7 +10,7 @@ function usage(){
 }
 
 function install_setup_bash(){
-    # カレントディレクトリから上に向かって install/setup.bash を探して source する。
+    # Walk up from the current directory looking for install/setup.bash and source it.
     local dir; dir=$(pwd)
     while [[ "${dir}" != "/" ]]; do
         if [[ -e "${dir}/install/setup.bash" ]]; then
@@ -21,12 +21,12 @@ function install_setup_bash(){
         fi
         dir=$(dirname "${dir}")
     done
-    echo_error "install/setup.bash が見つかりません"
+    echo_error "install/setup.bash not found"
     return 1
 }
 
 function set_ros_distro(){
-    # ROS_DISTRO が未設定の場合、インストール済みのディストリビューションを自動検出する。
+    # Auto-detect the installed ROS distribution when ROS_DISTRO is not set.
     if [[ -z "${ROS_DISTRO:-}" ]]; then
         local distro
         for distro in iron humble galactic foxy eloquent dashing noetic melodic; do
@@ -35,12 +35,12 @@ function set_ros_distro(){
                 break
             fi
         done
-        echo_info "ROS_DISTRO=${ROS_DISTRO:-未検出}"
+        echo_info "ROS_DISTRO=${ROS_DISTRO:-not found}"
     fi
 }
 
 function set_cyclone_dds(){
-    # ~/cyclonedds_config.xml が存在する場合、CycloneDDS を DDS 実装として設定する。
+    # Use CycloneDDS as the DDS implementation if ~/cyclonedds_config.xml exists.
     local cfg="/home/${USER}/cyclonedds_config.xml"
     if [[ -e "${cfg}" ]]; then
         export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
@@ -51,7 +51,7 @@ function set_cyclone_dds(){
 }
 
 function set_jetson(){
-    # Jetson デバイスを検出し、クロック・受信バッファを最大値に設定する。
+    # Detect a Jetson device and set clocks / receive buffer to maximum.
     if [[ -e "/etc/nv_tegra_release" ]]; then
         IS_JETSON=true
         echo jetson | sudo -S sysctl -w net.core.rmem_max=2147483647
@@ -80,13 +80,13 @@ function main(){
 
     pushd "${SCRIPT_DIR}" > /dev/null
 
-    # ROS2 セットアップ
+    # ROS2 setup
     set_ros_distro
     install_setup_bash
-    # set_cyclone_dds  # CycloneDDS を使う場合はコメントを外す
-    # set_jetson       # Jetson チューニングが必要な場合はコメントを外す
+    # set_cyclone_dds  # uncomment to use CycloneDDS
+    # set_jetson       # uncomment for Jetson performance tuning
 
-    echo_info "WORKSPACE=${WORKSPACE:-未設定}"
+    echo_info "WORKSPACE=${WORKSPACE:-not set}"
     echo_note "non-parsed argument(s)=${args}"
 
     popd > /dev/null

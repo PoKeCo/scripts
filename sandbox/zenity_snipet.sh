@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 # zenity-demo.sh
 
-# 情報ダイアログ
+# Information dialog
 zenity --info \
   --title="Info" \
   --text="This is an information dialog" \
   --width=300
 
-# 警告ダイアログ
+# Warning dialog
 zenity --warning \
   --title="Warning" \
   --text="Disk usage exceeded threshold" \
   --width=300
 
-# エラーダイアログ
+# Error dialog
 zenity --error \
   --title="Error" \
   --text="Operation failed! Please try again." \
   --width=300
 
-# 質問（Yes/No）
+# Question dialog (Yes/No)
 if zenity --question \
     --title="Confirm" \
     --text="Do you want to continue?" \
@@ -29,21 +29,21 @@ else
   echo "User chose No"
 fi
 
-# テキスト入力
+# Text input
 user_input=$(zenity --entry \
   --title="Input Required" \
   --text="Enter your name:" \
   --width=300)
 echo "Name: $user_input"
 
-# パスワード入力
+# Password input
 password=$(zenity --password \
   --title="Password" \
   --text="Enter your secret password:" \
   --width=300)
 echo "Password length: ${#password}"
 
-# カレンダー選択
+# Calendar selection
 selected_date=$(zenity --calendar \
   --title="Select Date" \
   --text="Choose a date:" \
@@ -51,19 +51,19 @@ selected_date=$(zenity --calendar \
   --width=300)
 echo "You picked: $selected_date"
 
-# ファイル選択
+# File selection
 file=$(zenity --file-selection \
   --title="Select a file to process" \
   --width=400)
 echo "Selected file: $file"
 
-# カラー選択
+# Color selection
 color=$(zenity --color-selection \
   --title="Pick a color" \
   --width=300)
 echo "Picked color: $color"
 
-# プログレス（フェイク処理）
+# Progress dialog (fake processing)
 (
   for i in {1..100}; do
     echo $i
@@ -76,14 +76,14 @@ echo "Picked color: $color"
   --auto-close \
   --width=300
 
-# リスト選択（単一選択）
+# List selection (single selection)
 list_item=$(zenity --list \
   --title="Choose one" \
   --column="Option" "Foo" "Bar" "Baz" \
   --width=300 --height=200)
 echo "Selected: $list_item"
 
-# フォーム入力（複数入力項目）
+# Form input (multiple fields)
 form_values=$(zenity --forms \
   --title="Form Input" \
   --text="Enter info:" \
@@ -93,7 +93,7 @@ form_values=$(zenity --forms \
   --width=400 --height=250)
 echo "Form data: $form_values"
 
-# テキスト表示（長文）
+# Text display (long content)
 zenity --text-info \
   --title="Log Output" \
   --filename=<(echo -e "Line 1\nLine 2\nLine 3") \

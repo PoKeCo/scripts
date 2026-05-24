@@ -1,34 +1,34 @@
 #!/bin/bash
 # =============================================================================
-# template_boot.sh — 複数ホストへの一括コマンド実行テンプレート
+# template_boot.sh — Template for launching commands across multiple hosts
 #
-# 使い方:
-#   1. このファイルをコピーして my_boot.sh などの名前で保存する
-#   2. SEQUENCE_LIST と on_all_success / on_any_failure を編集する
-#   3. ./my_boot.sh で実行する
+# How to use:
+#   1. Copy this file and save it as e.g. my_boot.sh
+#   2. Edit SEQUENCE_LIST and the on_all_success / on_any_failure hooks below
+#   3. Run: ./my_boot.sh
 #
-# SEQUENCE_LIST のフォーマット（1行1エントリ、区切り文字は「:」）:
+# SEQUENCE_LIST format (one entry per line, fields separated by ":"):
 #
 #   HOST:COMMAND:WINDOW_MODE:WAIT_OPT
 #
-#   HOST         ADDR@USR@PASS   SSH でリモートホストに接続
-#                localhost       ローカルで gnome-terminal タブを開く
-#                .               ローカルで現在のシェルに直接実行（タブなし）
-#   COMMAND      実行するシェルコマンド（コマンド内に「:」を含めないこと）
-#   WINDOW_MODE  k=実行後もタブを開いたまま  e=成功時に閉じる  f=常に閉じる
-#   WAIT_OPT     w=完了まで待機  0=待機なし  N=N秒スリープ後に次へ進む
+#   HOST         ADDR@USR@PASS   connect to remote host via SSH
+#                localhost       open a local gnome-terminal tab
+#                .               run locally in the current shell (no tab)
+#   COMMAND      shell command to run (must not contain ":")
+#   WINDOW_MODE  k=keep tab open  e=close on success  f=always close
+#   WAIT_OPT     w=block until done  0=no wait  N=sleep N seconds then proceed
 #
-#   行頭が # の行はコメントとして無視される。
+#   Lines starting with # are treated as comments and ignored.
 #
-# SEQUENCE_LIST の例:
+# SEQUENCE_LIST examples:
 #   192.168.1.10@jetson@pass:ros2 launch robot bringup.launch.py:k:w
 #   192.168.1.11@jetson@pass:ros2 launch sensor lidar.launch.py:k:5
 #   localhost:rviz2:e:0
-#   .:echo "全ノード起動完了":f:0
+#   .:echo "All nodes launched":f:0
 # =============================================================================
 
 # =============================================================================
-# ── ユーザー設定エリア（ここを編集する）────────────────────────────────────
+# -- User configuration (edit this section) -----------------------------------
 
 SEQUENCE_LIST=$(cat << 'EOF'
 # HOST                    :COMMAND                  :WINDOW_MODE:WAIT_OPT
@@ -40,50 +40,50 @@ EOF
 )
 
 function on_all_success(){
-    # 全シーケンスがエラーなく完了したときに呼ばれる。
-    # このコピーでオーバーライドして使う。
-    echo_info "全シーケンスが正常に完了しました。"
+    # Called when all sequences complete without errors.
+    # Override this function in your copy.
+    echo_info "All sequences completed successfully."
 }
 
 function on_any_failure(){
-    # 1つ以上のシーケンスが失敗したときに呼ばれる。
-    # このコピーでオーバーライドして使う。
-    echo_warning "失敗したシーケンスがあります。上記 Summary を確認してください。"
+    # Called when one or more sequences fail.
+    # Override this function in your copy.
+    echo_warning "One or more sequences failed. Check the Summary above."
 }
 
-# ── ユーザー設定エリアここまで ───────────────────────────────────────────────
+# -- End of user configuration ------------------------------------------------
 # =============================================================================
 
 function show_help(){
     echo "Usage: ${THIS_SCRIPT} [OPTION]"
     echo
-    echo "複数ホストへのコマンドを gnome-terminal タブで一括実行します。"
+    echo "Run commands on multiple hosts in parallel via gnome-terminal tabs."
     echo
-    printf " %-20s %s\n" "--help" "このヘルプを表示して終了"
+    printf " %-20s %s\n" "--help" "Display this help and exit"
 }
 
 function _run_sequences(){
-    # SEQUENCE_LIST を解析して各エントリを実行し、最後に Summary を表示する。
+    # Parse SEQUENCE_LIST, execute each entry, then display a Summary.
     declare -A _seqs _hosts _cmds _wmodes _wopts _ret_files
     local _count=0
 
     while IFS= read -r _line; do
-        # コメント・空行をスキップ
+        # Skip comments and blank lines
         _line="${_line%%#*}"
-        _line="${_line#"${_line%%[![:space:]]*}"}"  # 先頭の空白を除去
+        _line="${_line#"${_line%%[![:space:]]*}"}"  # trim leading whitespace
         [[ -z "${_line}" ]] && continue
 
-        # フィールド分割（区切りは「:」）
+        # Split fields (delimiter: ":")
         local _host _cmd _wmode _wopt
         IFS=":" read -r _host _cmd _wmode _wopt <<< "${_line}"
 
-        # 空白トリム
+        # Trim surrounding whitespace from each field
         _host="${_host#"${_host%%[![:space:]]*}"}"; _host="${_host%"${_host##*[![:space:]]}"}"
         _cmd="${_cmd#"${_cmd%%[![:space:]]*}"}";   _cmd="${_cmd%"${_cmd##*[![:space:]]}"}"
         _wmode="${_wmode#"${_wmode%%[![:space:]]*}"}"; _wmode="${_wmode%"${_wmode##*[![:space:]]}"}"
         _wopt="${_wopt#"${_wopt%%[![:space:]]*}"}"; _wopt="${_wopt%"${_wopt##*[![:space:]]}"}"
 
-        [[ -z "${_cmd}" ]] && continue  # COMMAND が空の行はスキップ
+        [[ -z "${_cmd}" ]] && continue  # skip lines with no COMMAND
 
         _seqs[$_count]="${_line}"
         _hosts[$_count]="${_host}"
@@ -93,22 +93,22 @@ function _run_sequences(){
         (( _count++ ))
     done <<< "${SEQUENCE_LIST}"
 
-    # 各エントリを実行
+    # Execute each entry
     for (( i=0; i<_count; i++ )); do
         local _host="${_hosts[$i]}"
         local _cmd="${_cmds[$i]}"
         local _wmode="${_wmodes[$i]}"
         local _wopt="${_wopts[$i]}"
 
-        # ADDR を HOST フィールドの最初の @ 前から取得
+        # Extract ADDR from the HOST field (everything before the first @)
         local _addr="${_host%%@*}"
 
-        # known_hosts をクリーン（SSH 接続先のみ）
+        # Clear stale known_hosts entry for SSH targets only
         if [[ "${_addr}" != "localhost" && "${_addr}" != "." ]]; then
             prepare_ssh "${_addr}" 2>/dev/null
         fi
 
-        # ホスト種別に応じて実行
+        # Dispatch based on host type
         if   [[ "${_addr}" == "." ]];         then
             lexec                                 "${_wopt}"  "${_cmd}"
         elif [[ "${_addr}" == "localhost" ]];  then
@@ -118,20 +118,20 @@ function _run_sequences(){
         fi
         _ret_files[$i]="${RETURN_VALUE_FILE}"
 
-        # 数値の WAIT_OPT は「次のエントリまでの待機秒数」として扱う
+        # A numeric WAIT_OPT means "sleep N seconds before launching the next entry"
         if is_number "${_wopt}" && [[ "${_wopt}" != "0" ]]; then
-            echo_note "${_wopt}秒待機..."
+            echo_note "Waiting ${_wopt}s..."
             sleep "${_wopt}"
         fi
     done
 
-    # 全タブの完了を待って Summary を表示
+    # Wait for all tabs to finish and display the Summary
     local _sum_err=0
     echo
     printf "${BLACK}$(BK_RGB 255 255 255) Summary ${NORM}\n\n"
     printf " %-5s  %s\n" "Exit" "Sequence"
     for (( i=0; i<_count; i++ )); do
-        # タブが終了ファイルを書き込むまで待機
+        # Wait until the tab writes its exit code file
         while [[ ! -f "${_ret_files[$i]}" ]]; do sleep 0.2; done
         local _rv; _rv=$(cat "${_ret_files[$i]}")
         rm -f "${_ret_files[$i]}"
@@ -149,7 +149,7 @@ function _run_sequences(){
 }
 
 # =============================================================================
-# メイン
+# Main
 # =============================================================================
 
 SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
@@ -167,7 +167,7 @@ while (( "$#" > 0 )); do
 done
 
 if (( _IS_SUB == 0 )); then
-    # 専用の gnome-terminal ウィンドウを開いて --sub モードで自分自身を再起動する
+    # Open a dedicated gnome-terminal window and re-launch in --sub mode
     gnome-terminal \
         --zoom=0.75 \
         --geometry=220x30-26+4 \
