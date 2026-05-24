@@ -1,4 +1,6 @@
 #!/bin/bash
+# [非推奨] このファイルは旧形式です。新規スクリプトには template.bash を使用してください。
+
 function main(){
     ## Prepare 
     set_escape_sequence
