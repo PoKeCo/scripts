@@ -1,54 +1,46 @@
 #!/bin/bash
+# リポジトリがリリース状態（rel-x.y.z ブランチ、かつクリーン）かどうかを確認する。
+# 条件を満たさない場合、zenity（GUI あり）またはターミナルに警告を表示する。
+
+SCRIPT_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
+source "${SCRIPT_DIR}/../benlib.sh"
+set_escape_sequence
 
 function is_rel_state(){
-    # --- Check if current directory is a git repository ---
-    REPO_DIR="$(git rev-parse --show-toplevel 2>/dev/null)"
-    if [ $? -ne 0 ]; then
-        echo "This directory is not a git repository." >&2
+    # git リポジトリか確認
+    local repo_dir
+    repo_dir="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [[ $? -ne 0 ]]; then
+        echo_error "This directory is not a git repository."
         exit 1
     fi
-    
-    cd "$REPO_DIR" || exit 1
-    
-    # --- Check if there are uncommitted changes ---
-    if [ -n "$(git status --porcelain)" ]; then
-        DIRTY=1
-    else
-        DIRTY=0
-    fi
-    
-    # --- Get the current branch name ---
-    BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-    
-    # --- Check if the branch name matches 'rel-x.y.z' format ---
-    if [[ "$BRANCH" =~ ^rel-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        REL_BRANCH=1
-    else
-        REL_BRANCH=0
-    fi
-    
-    # --- Define warning message ---
-    WARNING_MSG="This repository is not in a release state.\n\n- Modified or untracked files: $DIRTY\n- Branch: $BRANCH"
-    
-    # --- Function to show warning (GUI if available, otherwise terminal) ---
-    show_warning() {
+    cd "${repo_dir}" || exit 1
+
+    # 未コミット変更の確認
+    local dirty=0
+    [[ -n "$(git status --porcelain)" ]] && dirty=1
+
+    # ブランチ名の確認
+    local branch
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+
+    local rel_branch=0
+    [[ "${branch}" =~ ^rel-[0-9]+\.[0-9]+\.[0-9]+$ ]] && rel_branch=1
+
+    # 警告条件に該当する場合のみ表示
+    if (( dirty == 1 || rel_branch == 0 )); then
+        local msg
+        msg="This repository is not in a release state.\n- Modified or untracked files: ${dirty}\n- Branch: ${branch}"
         if command -v zenity >/dev/null 2>&1; then
             zenity --warning \
                    --width=400 \
                    --height=200 \
                    --title="Git State Warning" \
-                   --text="$WARNING_MSG"
+                   --text="${msg}"
         else
-            # Print in red text
-            echo -e "\033[31mWARNING: $WARNING_MSG\033[0m"
+            echo_warning "${msg}"
         fi
-    }
-    
-    # --- Display warning if conditions are met ---
-    if [ "$DIRTY" -eq 1 ] || [ "$REL_BRANCH" -eq 0 ]; then
-        show_warning
     fi
-    
 }
 
 is_rel_state
